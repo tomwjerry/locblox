@@ -1,5 +1,8 @@
 <template>
-    <div :contenteditable="edit" v-html="value"></div>
+    <div :contenteditable="edit" v-html="value"
+        class="text-block"
+        :class="{ 'edit': edit }"
+    ></div>
 </template>
 
 <script>

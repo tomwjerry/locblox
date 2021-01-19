@@ -5,8 +5,13 @@
         :value="content"
     ></text-block>
 
-    <button @click="edit = !edit" type="button">Edit</button>
-    <button @click="addElement()" type="button">Add</button>
+    <button @click="edit = !edit"
+        type="button"
+        class="mr-2"
+    >Edit</button>
+    <button @click="addElement()"
+        type="button"
+    >Add</button>
 </template>
 
 <script>
