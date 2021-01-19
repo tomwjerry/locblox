@@ -1,6 +1,6 @@
 <template>
     <div :contenteditable="edit" v-html="value"
-        class="text-block"
+        class="text-block mb-2"
         :class="{ 'edit': edit }"
     ></div>
 </template>

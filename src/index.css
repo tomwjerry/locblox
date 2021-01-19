@@ -28,12 +28,26 @@ button {
     margin-right: 0.4rem;
 }
 
+.mb-2 {
+    margin-bottom: 0.4rem;
+}
+
 .text-block {
     padding-top: 1rem;
     padding-bottom: 1rem;
-    margin-bottom: 0.3rem;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+    min-height: 1.5rem;
 }
 
 .text-block.edit {
     background-color: #eeeedd;
+}
+
+.text-block.edit:focus {
+    border: 1px solid #999977;
+}
+
+.image-block img {
+    display: block;
 }

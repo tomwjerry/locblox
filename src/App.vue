@@ -1,9 +1,10 @@
 <template>
-    <text-block v-for="(content, index) in contentList"
+    <component v-for="(content, index) in contentList"
+        :is="content.type"
         :key="index"
         :edit="edit"
-        :value="content"
-    ></text-block>
+        :value="content.value"
+    ></component>
 
     <button @click="edit = !edit"
         type="button"
@@ -16,11 +17,15 @@
 
 <script>
     import TextBlock from './components/TextBlock.vue';
+    import ImageBlock from './components/ImageBlock.vue';
 
     export default {
         data() {
             return {
-                contentList: ['&nbsp;'],
+                contentList: [
+                    { type: TextBlock, value: '' },
+                    { type: ImageBlock, value: '' }
+                ],
                 edit: false
             };
         },
@@ -29,7 +34,7 @@
         },
         methods: {
             addElement() {
-                this.contentList.push('&nbsp;');
+                this.contentList.push({ type: TextBlock, value: '' });
             }
         }
     };
