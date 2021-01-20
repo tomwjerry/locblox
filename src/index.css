@@ -32,6 +32,11 @@ button {
     margin-bottom: 0.4rem;
 }
 
+.layout {
+    display: grid;
+    grid-template-columns: 10rem auto;
+}
+
 .text-block {
     padding-top: 1rem;
     padding-bottom: 1rem;

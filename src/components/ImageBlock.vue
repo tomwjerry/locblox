@@ -24,6 +24,8 @@ export default {
 
             fileReader.onload = function(e) {
                 rthis.img = e.target.result;
+
+                this.$emit('input', rthis.img);
             };
 
             fileReader.readAsDataURL(fileIn);
