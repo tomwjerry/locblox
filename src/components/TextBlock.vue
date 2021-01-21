@@ -1,7 +1,7 @@
 <template>
-    <div :contenteditable="edit" v-html="value"
+    <div :contenteditable="edit" v-html="modelValue"
         class="text-block mb-2"
-        @blur="update"
+        @input="update"
         :class="{ 'edit': edit }"
     ></div>
 </template>
@@ -10,11 +10,12 @@
 export default {
     props: {
         edit: Boolean,
-        value: String
+        modelValue: String
     },
+    emits: ['update:modelValue'],
     methods: {
         update(ev) {
-            this.$emit('input', ev.target.innerHTML)
+            this.$emit('update:modelValue', ev.target.innerHTML);
         }
     }
 };

@@ -3,7 +3,7 @@
         <aside>
             <button @click="edit = !edit"
                 type="button"
-                class="mb-2"
+                class="mb-2 mr-2"
             >Edit</button>
             
             <button @click="save()"
@@ -31,7 +31,7 @@
                 <component
                     :is="content.type"
                     :edit="edit"
-                    :value="content.value"
+                    v-model="content.value"
                 ></component>
             </div>
         </main>
@@ -84,13 +84,13 @@
                     this.contentList.push({
                         type: TextBlock,
                         strType: elementType,
-                        value: ''
+                        value: value
                     });
                 } else if (elementType == "ImageBlock") {
                     this.contentList.push({
                         type: ImageBlock,
                         strType: elementType,
-                        value: ''
+                        value: value
                     });
                 }
 
