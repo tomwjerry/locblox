@@ -4,10 +4,11 @@
             <button @click="edit = !edit"
                 type="button"
                 class="mb-2 mr-2"
-            >Edit</button>
+            >View</button>
             
             <button @click="save()"
                 type="button"
+                v-if="edit"
                 class="mb-2"
             >Save</button>
 
@@ -19,7 +20,12 @@
                 
                 <button @click="addElement('ImageBlock')"
                     type="button"
-                >Add image block</button>
+                    class="mb-2"
+                >Add image</button>
+                
+                <button @click="addElement('QuizBlock')"
+                    type="button"
+                >Add quiz</button>
             </div>
         </aside>
 
@@ -31,6 +37,7 @@
                 <component
                     :is="content.type"
                     :edit="edit"
+                    :id="index"
                     v-model="content.value"
                 ></component>
             </div>
@@ -41,6 +48,7 @@
 <script>
     import TextBlock from './components/TextBlock.vue';
     import ImageBlock from './components/ImageBlock.vue';
+    import QuizBlock from './components/QuizBlock.vue';
 
     export default {
         data() {
@@ -50,19 +58,11 @@
                         type: TextBlock,
                         strType: 'TextBlock',
                         value: ''
-                    },
-                    {
-                        type: ImageBlock,
-                        strType: 'ImageBlock',
-                        value: ''
                     }
                 ],
-                edit: false,
+                edit: true,
                 activeElement: null
             };
-        },
-        components: {
-            'text-block': TextBlock
         },
         created() {
             const savedContent = localStorage.getItem('savedcontent');
@@ -89,6 +89,12 @@
                 } else if (elementType == "ImageBlock") {
                     this.contentList.push({
                         type: ImageBlock,
+                        strType: elementType,
+                        value: value
+                    });
+                } else if (elementType == "QuizBlock") {
+                    this.contentList.push({
+                        type: QuizBlock,
                         strType: elementType,
                         value: value
                     });

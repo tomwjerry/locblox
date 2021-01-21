@@ -9,12 +9,16 @@
 export default {
     props: {
         edit: Boolean,
-        value: String
+        modelValue: String
     },
+    emits: ['update:modelValue'],
     data() {
         return {
             img: ''
         };
+    },
+    mounted() {
+        this.img = this.modelValue;
     },
     methods: {
         upload(ev) {
@@ -25,7 +29,7 @@ export default {
             fileReader.onload = function(e) {
                 rthis.img = e.target.result;
 
-                this.$emit('input', rthis.img);
+                this.$emit('update:modelValue', rthis.img);
             };
 
             fileReader.readAsDataURL(fileIn);

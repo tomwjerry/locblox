@@ -12,6 +12,7 @@ export default {
         edit: Boolean,
         modelValue: String
     },
+    emits: ['update:modelValue'],
     data() {
         return {
             content: ''
@@ -20,7 +21,6 @@ export default {
     mounted() {
         this.content = this.modelValue;
     },
-    emits: ['update:modelValue'],
     methods: {
         update(ev) {
             this.$emit('update:modelValue', ev.target.innerHTML);
