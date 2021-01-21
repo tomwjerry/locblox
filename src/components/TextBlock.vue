@@ -1,5 +1,5 @@
 <template>
-    <div :contenteditable="edit" v-html="modelValue"
+    <div :contenteditable="edit" v-html="content"
         class="text-block mb-2"
         @input="update"
         :class="{ 'edit': edit }"
@@ -11,6 +11,14 @@ export default {
     props: {
         edit: Boolean,
         modelValue: String
+    },
+    data() {
+        return {
+            content: ''
+        };
+    },
+    mounted() {
+        this.content = this.modelValue;
     },
     emits: ['update:modelValue'],
     methods: {
