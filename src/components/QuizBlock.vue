@@ -42,7 +42,10 @@ export default {
         modelValue: Object,
         id: Number
     },
-    emits: ['update:modelValue'],
+    emits: [
+        'update:modelValue',
+        'progress'
+    ],
     data() {
         return {
             multiple: false,
@@ -115,6 +118,7 @@ export default {
                 this.answerRevealed = "wrong";
             } else {
                 this.answerRevealed = "correct";
+                this.$emit('progress');
             }
         },
         answeredOpt(ev, oidx) {

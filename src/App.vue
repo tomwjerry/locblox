@@ -13,24 +13,24 @@
             >Save</button>
 
             <div v-if="edit">
-                <button @click="addElement('TextBlock')"
+                <button @click="addElement('TextBlock', '', false)"
                     type="button"
                     class="mb-2"
                 >Add text block</button>
                 
-                <button @click="addElement('ImageBlock')"
+                <button @click="addElement('ImageBlock', '', false)"
                     type="button"
                     class="mb-2"
                 >Add image</button>
                 
-                <button @click="addElement('QuizBlock')"
+                <button @click="addElement('QuizBlock', '', true)"
                     type="button"
                 >Add quiz</button>
             </div>
         </aside>
 
         <main>
-            <div v-for="(content, index) in contentList"
+            <div v-for="(content, index) in readContent"
                 :key="index"
                 @click="activeElement = content"
             >
@@ -39,6 +39,7 @@
                     :edit="edit"
                     :id="index"
                     v-model="content.value"
+                    @progress="contentProgress(index)"
                 ></component>
             </div>
         </main>
@@ -57,12 +58,14 @@
                     {
                         type: TextBlock,
                         strType: 'TextBlock',
-                        value: ''
+                        value: '',
+                        blocking: false
                     }
                 ],
                 edit: true,
                 readView: false,
-                activeElement: null
+                activeElement: null,
+                readUntil: 0
             };
         },
         created() {
@@ -74,7 +77,7 @@
                 if (parsedContent && parsedContent.length) {
                     this.contentList = [];
                     for (let pc of parsedContent) {
-                        this.addElement(pc.strType, pc.value);
+                        this.addElement(pc.strType, pc.value, pc.blocking);
                     }
                 }
             }
@@ -83,26 +86,31 @@
                 this.readView = true;
                 this.edit = false;
             }
+
+            this.contentProgress(0);
         },
         methods: {
-            addElement(elementType, value) {
+            addElement(elementType, value, blocking) {
                 if (elementType == "TextBlock") {
                     this.contentList.push({
                         type: TextBlock,
                         strType: elementType,
-                        value: value
+                        value: value,
+                        blocking: blocking
                     });
                 } else if (elementType == "ImageBlock") {
                     this.contentList.push({
                         type: ImageBlock,
                         strType: elementType,
-                        value: value
+                        value: value,
+                        blocking: blocking
                     });
                 } else if (elementType == "QuizBlock") {
                     this.contentList.push({
                         type: QuizBlock,
                         strType: elementType,
-                        value: value
+                        value: value,
+                        blocking: blocking
                     });
                 }
 
@@ -114,7 +122,8 @@
                 for (let cl of this.contentList) {
                     listToSave.push({
                         strType: cl.strType,
-                        value: cl.value
+                        value: cl.value,
+                        blocking: cl.blocking
                     });
                 }
 
@@ -122,6 +131,23 @@
                     'savedcontent',
                     JSON.stringify(listToSave)
                 );
+            },
+            contentProgress(curIndex) {
+                for (let i = curIndex + 1; i < this.contentList.length; i++) {
+                    this.readUntil = i;
+                    if (this.contentList[i].blocking) {
+                        return;
+                    }
+                }
+            }
+        },
+        computed: {
+            readContent() {
+                if (this.edit) {
+                    return this.contentList;
+                } else {
+                    return this.contentList.slice(0, this.readUntil + 1);
+                }
             }
         }
     };
