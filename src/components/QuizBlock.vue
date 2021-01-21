@@ -121,8 +121,8 @@ export default {
             if (this.multiple) {
                 this.yourAnswer[oidx] = ev.target.checked;
             } else if (ev.target.checked) {
-                for (let opt of this.yourAnswer) {
-                    opt = false;
+                for (let ai = 0; ai < this.yourAnswer.length; ai++) {
+                    this.yourAnswer[ai] = false;
                 }
                 
                 this.yourAnswer[oidx] = true;

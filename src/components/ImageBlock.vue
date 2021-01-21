@@ -29,7 +29,7 @@ export default {
             fileReader.onload = function(e) {
                 rthis.img = e.target.result;
 
-                this.$emit('update:modelValue', rthis.img);
+                rthis.$emit('update:modelValue', rthis.img);
             };
 
             fileReader.readAsDataURL(fileIn);

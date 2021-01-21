@@ -1,6 +1,6 @@
 <template>
     <div class="layout">
-        <aside>
+        <aside v-if="!readView">
             <button @click="edit = !edit"
                 type="button"
                 class="mb-2 mr-2"
@@ -61,6 +61,7 @@
                     }
                 ],
                 edit: true,
+                readView: false,
                 activeElement: null
             };
         },
@@ -76,6 +77,11 @@
                         this.addElement(pc.strType, pc.value);
                     }
                 }
+            }
+
+            if (location.pathname == "/view") {
+                this.readView = true;
+                this.edit = false;
             }
         },
         methods: {
