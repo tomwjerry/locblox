@@ -13,17 +13,17 @@
             >Save</button>
 
             <div v-if="edit">
-                <button @click="addElement('TextBlock', '', false)"
+                <button @click="addElement('text-block', '', false)"
                     type="button"
                     class="mb-2"
                 >Add text block</button>
                 
-                <button @click="addElement('ImageBlock', '', false)"
+                <button @click="addElement('image-block', '', false)"
                     type="button"
                     class="mb-2"
                 >Add image</button>
                 
-                <button @click="addElement('QuizBlock', '', true)"
+                <button @click="addElement('quiz-block', '', true)"
                     type="button"
                 >Add quiz</button>
             </div>
@@ -37,7 +37,7 @@
                 <component
                     :is="content.type"
                     :edit="edit"
-                    :id="index"
+                    :mid="index"
                     v-model="content.value"
                     @progress="contentProgress(index)"
                 ></component>
@@ -56,8 +56,7 @@
             return {
                 contentList: [
                     {
-                        type: TextBlock,
-                        strType: 'TextBlock',
+                        type: 'text-block',
                         value: '',
                         blocking: false
                     }
@@ -77,12 +76,12 @@
                 if (parsedContent && parsedContent.length) {
                     this.contentList = [];
                     for (let pc of parsedContent) {
-                        this.addElement(pc.strType, pc.value, pc.blocking);
+                        this.addElement(pc.type, pc.value, pc.blocking);
                     }
                 }
             }
 
-            if (location.pathname == "/view") {
+            if (location.pathname == '/view') {
                 this.readView = true;
                 this.edit = false;
             }
@@ -91,28 +90,11 @@
         },
         methods: {
             addElement(elementType, value, blocking) {
-                if (elementType == "TextBlock") {
-                    this.contentList.push({
-                        type: TextBlock,
-                        strType: elementType,
-                        value: value,
-                        blocking: blocking
-                    });
-                } else if (elementType == "ImageBlock") {
-                    this.contentList.push({
-                        type: ImageBlock,
-                        strType: elementType,
-                        value: value,
-                        blocking: blocking
-                    });
-                } else if (elementType == "QuizBlock") {
-                    this.contentList.push({
-                        type: QuizBlock,
-                        strType: elementType,
-                        value: value,
-                        blocking: blocking
-                    });
-                }
+                this.contentList.push({
+                    type: elementType,
+                    value: value,
+                    blocking: blocking
+                });
 
                 this.activeElement = this.contentList[this.contentList.length - 1];
             },
@@ -121,7 +103,7 @@
 
                 for (let cl of this.contentList) {
                     listToSave.push({
-                        strType: cl.strType,
+                        type: cl.type,
                         value: cl.value,
                         blocking: cl.blocking
                     });
@@ -149,6 +131,11 @@
                     return this.contentList.slice(0, this.readUntil + 1);
                 }
             }
+        },
+        components: {
+            'text-block': TextBlock,
+            'image-block': ImageBlock,
+            'quiz-block': QuizBlock
         }
     };
 </script>
