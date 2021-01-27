@@ -47,6 +47,7 @@
 </template>
 
 <script>
+    import ContentStorageProvider from './services/ContentStorageProvider.js';
     import TextBlock from './components/TextBlock.vue';
     import ImageBlock from './components/ImageBlock.vue';
     import QuizBlock from './components/QuizBlock.vue';
@@ -68,16 +69,13 @@
             };
         },
         created() {
-            const savedContent = localStorage.getItem('savedcontent');
-
-            if (savedContent) {
-                const parsedContent = JSON.parse(savedContent);
+            const parsedContent =
+                ContentStorageProvider.getProvier().getContent();
                 
-                if (parsedContent && parsedContent.length) {
-                    this.contentList = [];
-                    for (let pc of parsedContent) {
-                        this.addElement(pc.type, pc.value, pc.blocking);
-                    }
+            if (parsedContent && parsedContent.length) {
+                this.contentList = [];
+                for (let pc of parsedContent) {
+                    this.addElement(pc.type, pc.value, pc.blocking);
                 }
             }
 
@@ -99,20 +97,7 @@
                 this.activeElement = this.contentList[this.contentList.length - 1];
             },
             save() {
-                let listToSave = [];
-
-                for (let cl of this.contentList) {
-                    listToSave.push({
-                        type: cl.type,
-                        value: cl.value,
-                        blocking: cl.blocking
-                    });
-                }
-
-                localStorage.setItem(
-                    'savedcontent',
-                    JSON.stringify(listToSave)
-                );
+                ContentStorageProvider.getProvier().saveContent(this.contentList);
             },
             contentProgress(curIndex) {
                 for (let i = curIndex + 1; i < this.contentList.length; i++) {
