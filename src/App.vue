@@ -31,7 +31,7 @@ function insertContent(content, withEdit) {
 </script>
 
 <template>
-  <div class="flex">
+  <div class="flex full-height">
     <ToolsPane @insertContent="insertContent" />
     <div class="content-area">
       <ContentArea :contentList="contentList" />
@@ -46,14 +46,24 @@ function insertContent(content, withEdit) {
   box-sizing: border-box;
 }
 
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
 .flex {
   display: flex;
+}
+
+.full-height {
+  height: 100%;
 }
 
 .content-area {
   flex-grow: 1;
   margin-left: 0.5rem;
   margin-right: 0.5rem;
+  height: 100%;
 }
 
 .content {

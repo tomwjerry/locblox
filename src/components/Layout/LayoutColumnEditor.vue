@@ -27,9 +27,9 @@ function whatComponent(componentType) {
 }
 
 watch(() => props.modelValue, (first, second) => {
-  isRows = second.isRows;
-  rows = second.rows;
-  componentObj = second;
+  isRows.value = second.isRows;
+  rows.value = second.rows;
+  componentObj.value = second;
 });
 </script>
 

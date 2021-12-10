@@ -1,5 +1,5 @@
 # locblox
-Block content creator made in Vue
+Block content creator made in Vue 3
 
 To run:
 
