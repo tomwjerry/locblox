@@ -123,6 +123,13 @@ function rulerClick(pos, e) {
 }
 
 .grid-editor .measure.top {
+    background-repeat: repeat-x;
+    background-image:
+        linear-gradient(90deg, #bbbbbb 0 1px, transparent 0),
+        linear-gradient(90deg, #bbbbbb 0 1px, transparent 0);
+    background-size:
+        0.5% 8px,
+        5% 20px;
     border-bottom: 1px solid #a0a0a0;
 }
 
