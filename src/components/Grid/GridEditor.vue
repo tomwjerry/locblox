@@ -1,5 +1,9 @@
 <script setup>
-import { onMounted, ref, reactive } from 'vue';
+import { inject, onMounted, ref, reactive } from 'vue';
+
+const whatSettingsPane = inject('whatSettingsPane');
+
+whatSettingsPane.value = 'GridEditorSidebar';
 
 const mode = ref('insert');
 
@@ -14,16 +18,13 @@ const hticks = reactive([]);
 const vticks = reactive([]);
 const gridEditorDOM = ref(null);
 
-    const height = gridEditorDOM.clientHeight;
-    const width = gridEditorDOM.clientWidth;
+for (let v = 0; v < 100; v += 10) {
+    vticks.push(v);
+}
 
-    for (let h = 0; h < width; h += 10) {
-        hticks.push(h);
-    }
-
-    for (let v = 0; v < height; v += 10) {
-        vticks.push(v);
-    }
+for (let h = 0; h < 100; h += 10) {
+    hticks.push(h);
+}
 
 function rulerClick(pos, e) {
     const rect = e.target.getBoundingClientRect();
@@ -37,7 +38,6 @@ function rulerClick(pos, e) {
 
         for (let i = 0; i < oldRows - 1; i++) {
             const percSize = gridProps.rows[i] / oldRows;
-            console.log(percSize);
             const newSize = (oldRows + 1) * percSize;
             remainingSpace -= newSize;
             gridProps.rows[i] = newSize;
@@ -76,23 +76,27 @@ function rulerClick(pos, e) {
     <div class="grid-editor" ref="gridEditorDOM">
         <div class="measure-space">
             <div class="measure left" @click="rulerClick('v', $event)">
-                <div v-for="tick in vticks"></div>
+                <div v-for="tick in vticks" class="tick" :style="tick.style"
+                >{{ tick.dispVal }}</div>
             </div>
         </div>
         <div class="inner">
             <div class="measure top"  @click="rulerClick('h', $event)">
-                <div v-for="tick in hticks"></div>
+                <div v-for="tick in hticks" class="tick" :style="tick.style"
+                >{{ tick.dispVal }}</div>
             </div>
             <div class="grid" :style="gridPropsStr">
                 <div class="item" v-for="index in gridItemDoms"></div>
             </div>
-            <div  class="measure bottom" @click="rulerClick('h', $event)">
-                <div v-for="tick in hticks"></div>
+            <div class="measure bottom" @click="rulerClick('h', $event)">
+                <div v-for="tick in hticks" class="tick" :style="tick.style"
+                >{{ tick.dispVal }}</div>
             </div>
         </div>
         <div class="measure-space">
             <div class="measure right"  @click="rulerClick('v', $event)">
-                <div v-for="tick in vticks"></div>
+                <div v-for="tick in vticks" class="tick" :style="tick.style"
+                >{{ tick.dispVal }}</div>
             </div>
         </div>
     </div>
@@ -114,30 +118,56 @@ function rulerClick(pos, e) {
     margin-bottom: 1rem;
 }
 
-.grid-editor .measure.left {
-    border-right: 1px solid #a0a0a0;
+.measure {
+    /* Low ticks */
+    --ruler1-h: 8px;
+    --ruler1-space: 5;
+    /* Tall ticks */
+    --ruler2-h: 20px;
+    --ruler2-space: 50;
+
+    background-attachment: fixed;
+    background-image:
+        linear-gradient(90deg, #bbbbbb 0 1px, transparent 0),
+        linear-gradient(90deg, #bbbbbb 0 1px, transparent 0);
+    background-position: 0 0;
+    background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+    background-size:
+        calc(1px * var(--ruler1-space) * 1) var(--ruler1-h),
+        calc(1px * var(--ruler2-space) * 1) var(--ruler2-h);
 }
 
-.grid-editor .measure.right {
-    border-left: 1px solid #a0a0a0;
-}
-
-.grid-editor .measure.top {
-    border-bottom: 1px solid #a0a0a0;
-}
-
-.grid-editor .measure.bottom {
-    border-top: 1px solid #a0a0a0;
-}
-
-.grid-editor .measure.left, .grid-editor .measure.right {
-    width: 1rem;
-    height: 100%;
-}
-
-.grid-editor .measure.top, .grid-editor .measure.bottom {
-    height: 1rem;
+.measure.top {
+    color: #bbbbbb;
+    counter-reset: d 0;
+    display: flex;
+    font-size: 0.8rem;
+    height: var(--ruler2-h);
+    inset-block-start: 0;
+    inset-inline-start: calc(1% * var(--ruler2-space));
+    line-height: 1;
+    list-style: none;
+    margin: 0;
+    opacity: 1;
+    overflow: hidden;
+    padding: 0;
     width: 100%;
+}
+
+.measure.top, .measure.bottom {
+    height: 16px;
+}
+
+.measure.top .tick {
+    align-self: flex-end;
+    counter-increment: d var(--ruler2-space);
+    flex: 0 0 calc(1% * var(--ruler2-space));
+}
+
+.measure.top .tick::after {
+    content: counter(d);
+    line-height: 1;
+    padding-inline-start: 4px;
 }
 
 .grid-editor .inner {

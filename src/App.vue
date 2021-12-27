@@ -8,12 +8,15 @@ import AnimationPane from './components/AnimationPane.vue';
 import SettingsPane from './components/SettingsPane.vue';
 
 const contentList = reactive([]);
+const nextId = ref(0);
+
 const currentEdit = ref(0);
 const showElementPositions = ref(false);
-const nextId = ref(0);
+const whatSettingsPane = ref('');
 
 provide('currentEdit', currentEdit);
 provide('showElementPositions', showElementPositions);
+provide('whatSettingsPane', whatSettingsPane)
 
 function insertContent(content, withEdit) {
   contentList.push({
