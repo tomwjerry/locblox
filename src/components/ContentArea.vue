@@ -1,6 +1,5 @@
 <script setup>
 import { inject } from 'vue';
-import LayoutRowEditor from './Layout/LayoutRowEditor.vue';
 import GridEditor from './Grid/GridEditor.vue';
 
 const props = defineProps({
@@ -11,11 +10,10 @@ const showElementPositions = inject('showElementPositions');
 </script>
 
 <template>
-  <div v-if="false">
+  <div>
     <div class="row dropslot" v-if="showElementPositions"></div>
     <template v-for="(row, index) in contentList">
-      <LayoutRowEditor v-model="contentList[index]"
-      />
+      <GridEditor />
       <div class="row dropslot" v-if="showElementPositions"></div>
     </template>
   </div>
