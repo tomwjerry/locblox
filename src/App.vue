@@ -7,7 +7,7 @@ import ContentArea from './components/ContentArea.vue';
 import AnimationPane from './components/AnimationPane.vue';
 import SettingsPane from './components/SettingsPane.vue';
 
-const contentList = reactive([]);
+const contentList = ref([]);
 const nextId = ref(0);
 
 const currentEdit = ref(0);

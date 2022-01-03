@@ -2,6 +2,7 @@
 import { inject, onMounted, ref, reactive } from 'vue';
 
 const whatSettingsPane = inject('whatSettingsPane');
+const emitter = inject('emitter');
 
 whatSettingsPane.value = 'GridEditorSidebar';
 
@@ -12,92 +13,183 @@ const gridProps = reactive({
     rows: [1]
 });
 const gridPropsStr = ref('');
-const gridItemDoms = ref(1);
+const gridItemDoms = ref([]);
+const currentMoveItem = reactive({});
 
-const hticks = reactive([]);
-const vticks = reactive([]);
-const gridEditorDOM = ref(null);
-
-for (let v = 0; v < 100; v += 10) {
-    vticks.push(v);
+function updateGrid() {
+    gridPropsStr.value = 'grid-template-columns: ' +
+        gridProps.columns.map(c => (c * 100) + '%').join(' ') +
+        '; grid-template-rows: ' +
+        gridProps.rows.map(r => (r * 100) + '%').join(' ');
 }
 
-for (let h = 0; h < 100; h += 10) {
-    hticks.push(h);
-}
-
-function rulerClick(pos, e) {
+function addLine(pos, e) {
     const rect = e.target.getBoundingClientRect();
     const x = e.clientX - rect.left; //x position within the element.
     const y = e.clientY - rect.top;
-    
-    if (pos == 'v') {
-        let itemSize = 1 - y / rect.height;
-        const oldRows = gridProps.rows.length;
-        let remainingSpace = oldRows + 1;
+    const isHorizontal = pos == 'h';
 
-        for (let i = 0; i < oldRows - 1; i++) {
-            const percSize = gridProps.rows[i] / oldRows;
-            const newSize = (oldRows + 1) * percSize;
-            remainingSpace -= newSize;
-            gridProps.rows[i] = newSize;
-        }
+    let itemSize = 0;
+    let oldArrayLength = 0;
+    let relevantArray = [];
+    let insertBefore = 0;
 
-        const newSize = itemSize * (oldRows + 1);
-        remainingSpace -= newSize;
-        gridProps.rows.push(newSize);
-
-        gridProps.rows[oldRows - 1] = remainingSpace;
-    } else if (pos == 'h') {
-        let itemSize = x / rect.width;
-        gridProps.columns.push(1);
+    if (isHorizontal) {
+        itemSize = x / rect.width;
+        relevantArray = gridProps.columns;
+    } else {
+        itemSize = y / rect.height;
+        relevantArray = gridProps.rows;
     }
 
-    gridPropsStr.value = 'grid-template-columns: ' +
-        gridProps.columns.map(c => c + 'fr').join(' ') +
-        '; grid-template-rows: ' +
-        gridProps.rows.map(r => r + 'fr').join(' ');
-    
-    if (gridProps.rows.length > 0) {
-        if (gridProps.columns.length > 0) {
-            gridItemDoms.value = gridProps.rows.length *
-                gridProps.columns.length;
-            
-        } else {
-            gridItemDoms.value = gridProps.rows.length;
+    oldArrayLength = relevantArray.length;
+    insertBefore = oldArrayLength;
+
+    let accumulatedPos = 0;
+    let beforeElementSize = 0;
+
+    for (let i = 0; i < oldArrayLength; i++) {
+        accumulatedPos += relevantArray[i];
+        // When whe click on occupied area, then we want to insert our element before
+        if (itemSize < accumulatedPos) {
+            insertBefore = i;
+            break;
         }
+        beforeElementSize += relevantArray[i];
+    }
+
+    // How much size remain
+    let remainingSpace = 1 - itemSize;
+    let beforeElement = insertBefore;
+    if (insertBefore - 1 >= 0) {
+        itemSize = itemSize - beforeElementSize;
+        remainingSpace = relevantArray[insertBefore] - itemSize;
     } else {
-        gridItemDoms.value = gridProps.columns.length;
+        beforeElement = oldArrayLength - 1;
+    }
+
+    // Put new row / col
+    if (isHorizontal) {
+        gridProps.columns[beforeElement] = remainingSpace;
+        gridProps.columns.splice(insertBefore, 0, itemSize);
+    } else {
+        gridProps.rows[beforeElement] = remainingSpace;
+        gridProps.rows.splice(insertBefore, 0, itemSize);
+    }
+
+    updateGrid();
+
+    gridItemDoms.value.splice(0);
+
+    // Update handles
+    let firstRow = true;
+    for (let ri = 0; ri < gridProps.rows.length; ri++) {
+        let firstColumn = true;
+        for (let cj = 0; cj < gridProps.columns.length; cj++) {
+            gridItemDoms.value.push({
+                handle: firstRow != firstColumn,
+                handlePos: firstColumn ? 'left' : firstRow ? 'top' : '',
+                index: firstColumn ? ri : cj
+            });
+
+            firstColumn = false;
+        }
+        firstRow = false;
     }
 }
+
+function moveLine(line, e) {
+    currentMoveItem.horizontal = line.handlePos == 'top';
+    currentMoveItem.index = line.index;
+
+    let relevantArray = [];
+    if (currentMoveItem.horizontal) {
+        relevantArray = gridProps.columns;
+    } else {
+        relevantArray = gridProps.rows;
+    }
+
+    // Add space for those two columns the line cross
+    currentMoveItem.area = relevantArray[line.index - 1] + relevantArray[line.index];
+    currentMoveItem.isMoving = true;
+
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function handleMove(e) {
+    if (currentMoveItem.isMoving) {
+        const rect = e.target.getBoundingClientRect();
+        const x = e.clientX - rect.left; //x position within the element.
+        const y = e.clientY - rect.top;
+        const arrayIndex = currentMoveItem.index;
+
+        let relevantArray = [];
+        let relativePos = 0;
+
+        if (currentMoveItem.horizontal) {
+            relevantArray = gridProps.columns;
+            relativePos = x / rect.width;
+        } else {
+            relevantArray = gridProps.rows;
+            relativePos = y / rect.height;
+        }
+
+        // Now, the percent of the handle is needed to be known...
+        relativePos -= 1 - currentMoveItem.area;
+
+        relevantArray[arrayIndex] = currentMoveItem.area - relativePos;
+        relevantArray[arrayIndex - 1] = currentMoveItem.area - relevantArray[arrayIndex];
+
+        if (currentMoveItem.horizontal) {
+            gridProps.columns[arrayIndex - 1] = relevantArray[arrayIndex - 1];
+            gridProps.columns[arrayIndex] = relevantArray[arrayIndex];
+        } else {
+            gridProps.rows[arrayIndex - 1] = relevantArray[arrayIndex - 1];
+            gridProps.rows[arrayIndex] = relevantArray[arrayIndex];
+        }
+
+        updateGrid();
+    }
+}
+
+function stopMove() {
+    currentMoveItem.isMoving = false;
+}
+
+emitter.on('reset', () => {
+    gridProps.columns = [1];
+    gridProps.rows = [1];
+    gridPropsStr.value = '';
+    gridItemDoms.value = [];
+});
 </script>
 
 <template>
-    <div class="grid-editor" ref="gridEditorDOM">
+    <div class="grid-editor" ref="gridEditorDOM" @mouseup="stopMove">
         <div class="measure-space">
-            <div class="measure left" @click="rulerClick('v', $event)">
-                <div v-for="tick in vticks" class="tick" :style="tick.style"
-                >{{ tick.dispVal }}</div>
-            </div>
+            <div class="measure left" @click="addLine('v', $event)"
+                @mousemove="handleMove($event)"
+            ></div>
         </div>
         <div class="inner">
-            <div class="measure top"  @click="rulerClick('h', $event)">
-                <div v-for="tick in hticks" class="tick" :style="tick.style"
-                >{{ tick.dispVal }}</div>
-            </div>
+            <div class="measure top"  @click="addLine('h', $event)"
+                @mousemove="handleMove($event)"
+            ></div>
             <div class="grid" :style="gridPropsStr">
-                <div class="item" v-for="index in gridItemDoms"></div>
+                <div class="item" v-for="grindItem in gridItemDoms">
+                    <div class="handle" v-if="grindItem.handle"
+                        :class="grindItem.handlePos"
+                        @mousedown="moveLine(grindItem, $event)"
+                    ></div>
+                </div>
             </div>
-            <div class="measure bottom" @click="rulerClick('h', $event)">
-                <div v-for="tick in hticks" class="tick" :style="tick.style"
-                >{{ tick.dispVal }}</div>
-            </div>
+            <div class="measure bottom" @click="addLine('h', $event)"
+            ></div>
         </div>
         <div class="measure-space">
-            <div class="measure right"  @click="rulerClick('v', $event)">
-                <div v-for="tick in vticks" class="tick" :style="tick.style"
-                >{{ tick.dispVal }}</div>
-            </div>
+            <div class="measure right"  @click="addLine('v', $event)"
+            ></div>
         </div>
     </div>
 </template>
@@ -113,79 +205,6 @@ function rulerClick(pos, e) {
     height: 100%;
 }
 
-.grid-editor .measure-space {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-}
-
-.measure {
-    /* Low ticks */
-    --ruler1-h: 8px;
-    --ruler1-space: 5;
-    /* Tall ticks */
-    --ruler2-h: 20px;
-    --ruler2-space: 50;
-
-    background-attachment: fixed;
-    background-image:
-        linear-gradient(90deg, #bbbbbb 0 1px, transparent 0),
-        linear-gradient(90deg, #bbbbbb 0 1px, transparent 0);
-    background-position: 0 0;
-    background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
-    background-size:
-        calc(1px * var(--ruler1-space) * 1) var(--ruler1-h),
-        calc(1px * var(--ruler2-space) * 1) var(--ruler2-h);
-}
-
-<<<<<<< HEAD
-.grid-editor .measure.right {
-    border-left: 1px solid #a0a0a0;
-}
-
-.grid-editor .measure.top {
-    background-repeat: repeat-x;
-    background-image:
-        linear-gradient(90deg, #bbbbbb 0 1px, transparent 0),
-        linear-gradient(90deg, #bbbbbb 0 1px, transparent 0);
-    background-size:
-        0.5% 8px,
-        5% 20px;
-    border-bottom: 1px solid #a0a0a0;
-=======
-.measure.top {
-    color: #bbbbbb;
-    counter-reset: d 0;
-    display: flex;
-    font-size: 0.8rem;
-    height: var(--ruler2-h);
-    inset-block-start: 0;
-    inset-inline-start: calc(1% * var(--ruler2-space));
-    line-height: 1;
-    list-style: none;
-    margin: 0;
-    opacity: 1;
-    overflow: hidden;
-    padding: 0;
-    width: 100%;
->>>>>>> 0daef010664e02ded7e1ba6ac57195ec17dc470a
-}
-
-.measure.top, .measure.bottom {
-    height: 16px;
-}
-
-.measure.top .tick {
-    align-self: flex-end;
-    counter-increment: d var(--ruler2-space);
-    flex: 0 0 calc(1% * var(--ruler2-space));
-}
-
-.measure.top .tick::after {
-    content: counter(d);
-    line-height: 1;
-    padding-inline-start: 4px;
-}
-
 .grid-editor .inner {
     flex-grow: 1;
     display: flex;
@@ -193,9 +212,45 @@ function rulerClick(pos, e) {
     flex-direction: column;
 }
 
+.measure {
+    background-color: #eeeeee;
+}
+
+.measure.top, .measure.bottom {
+    height: 1rem;
+}
+
+.measure.left, .measure.right {
+    width: 1rem;
+    height: 100%;
+}
+
 .grid-editor .grid .item {
     outline: 1px dashed #a0a0a0;
     width: 100%;
     height: 100%;
+    position: relative;
+}
+
+.handle.left {
+    width: 0; 
+    height: 0; 
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid #00aa00;
+    position: absolute;
+    top: -10px;
+    left: -10px;
+}
+
+.handle.top {
+    width: 0; 
+    height: 0; 
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #0000ff;
+    position: absolute;
+    top: -10px;
+    left: -10px;
 }
 </style>
