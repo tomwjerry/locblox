@@ -110,6 +110,12 @@ function moveLine(line, e) {
     }
 
     // Add space for those two columns the line cross
+    currentMoveItem.relativePos = 0;
+
+    for (let i = 0; i < line.index - 1; i++) {
+        currentMoveItem.relativePos += relevantArray[i];
+    }
+
     currentMoveItem.area = relevantArray[line.index - 1] + relevantArray[line.index];
     currentMoveItem.isMoving = true;
 
@@ -136,10 +142,10 @@ function handleMove(e) {
         }
 
         // Now, the percent of the handle is needed to be known...
-        relativePos -= 1 - currentMoveItem.area;
+        let calcArea = 1 - currentMoveItem.area;
 
-        relevantArray[arrayIndex] = currentMoveItem.area - relativePos;
-        relevantArray[arrayIndex - 1] = currentMoveItem.area - relevantArray[arrayIndex];
+        relevantArray[arrayIndex - 1] = relativePos - currentMoveItem.relativePos;
+        relevantArray[arrayIndex] = currentMoveItem.area - relevantArray[arrayIndex - 1];
 
         if (currentMoveItem.horizontal) {
             gridProps.columns[arrayIndex - 1] = relevantArray[arrayIndex - 1];
@@ -153,8 +159,13 @@ function handleMove(e) {
     }
 }
 
-function stopMove() {
+function stopMove(ev) {
     currentMoveItem.isMoving = false;
+
+    // Click outside
+    if (!ev.target.classList.contains("measure") && !ev.target.classList.contains("handle")) {
+        
+    }
 }
 
 emitter.on('reset', () => {
@@ -166,7 +177,7 @@ emitter.on('reset', () => {
 </script>
 
 <template>
-    <div class="grid-editor" ref="gridEditorDOM" @mouseup="stopMove">
+    <div class="grid-editor" ref="gridEditorDOM" @mouseup="stopMove($event)">
         <div class="measure-space">
             <div class="measure left" @click="addLine('v', $event)"
                 @mousemove="handleMove($event)"
