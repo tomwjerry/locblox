@@ -164,7 +164,19 @@ function stopMove(ev) {
 
     // Click outside
     if (!ev.target.classList.contains("measure") && !ev.target.classList.contains("handle")) {
-        
+        if (currentMoveItem.horizontal) {
+            gridProps.columns[currentMoveItem.index - 1] +=
+                gridProps.columns[currentMoveItem.index];
+            gridProps.columns.splice(currentMoveItem.index, 1);
+        } else {
+            gridProps.rows[currentMoveItem.index - 1] +=
+                gridProps.rows[currentMoveItem.index];
+            gridProps.rows.splice(currentMoveItem.index, 1);
+        }
+
+        gridItemDoms.value.splice(gridItemDoms.value.length - 1, 1);
+
+        updateGrid();
     }
 }
 
